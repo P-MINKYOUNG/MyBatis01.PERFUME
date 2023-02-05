@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="model.PerfumeMapper">
+
+<resultMap type="perfumeDTO" id="resultMap">
+
+	<id property="perfumeNo" column="PERFUME_NO"/>
+	<result property="perfumeName"  column="PERFUME_NAME"/>
+	<result property="categoryNo" column="CATEGORY_NO"/>
+	<result property="brandNo" column="BRAND_NO"/>
+	<result property="amount" column="AMOUNT"/>
+	<result property="price" column="PRICE"/>
+	<result property="storageAmount" column="STORAGE_AMOUNT"/>
+	<result property="manufacturedDate" column="MANUFACTURED_DATE"/>
+	<result property="orderableStatus" column="ORDERABLE_STATUS"/>
+	<result property="cagetoryName" column="CATEGORY_NAME"/>
+	<result property="brandName" column="BRAND_NAME"/>
+</resultMap>
+
+<resultMap type="CategoryDTO" id="categoryDTO">
+	<id property="categoryNo" column="CATEGORY_NO"/>
+	<result property="categoryName" column="CATEGORY_NAME"/>
+	<result property="nationalCode" column="NATIONAL_CODE"/>
+</resultMap>
+
+<resultMap type="BrandDTO" id="brandDTO">
+	<id property="brandNo" column="BRAND_NO"/>
+	<result property="brandName" column="BRAND_NAME"/>
+</resultMap>
+
+<select id = "selectAllMenu" resultMap="resultMap">
+SELECT
+       PERFUME_NO
+     , PERFUME_NAME
+     , CATEGORY_NO
+     , BRAND_NO
+     , AMOUNT
+     , PRICE
+     , STORAGE_AMOUNT
+     , MANUFACTURED_DATE
+     , ORDERABLE_STATUS
+  FROM PERFUME
+ WERHE ORDERABLE_STATUS = 'Y'
+</select>
+
+<select id = "selectMenuByCategoryName" resultMap="resultMap">
+SELECT
+       PERFUME_NO
+     , PERFUME_NAME
+     , CATEGORY_NO
+     , BRAND_NO
+     , AMOUNT
+     , PRICE
+     , STORAGE_AMOUNT
+     , MANUFACTURED_DATE
+     , ORDERABLE_STATUS
+  FROM PERFUME
+  JOIN CATEGORY USING (CATEGORY_NO)
+ WHERE CATEGORY_NAME = #{ inputName }
+</select>
+
+<select id = "selectMenuByPrice" resultMap="resultMap">
+SELECT
+       PERFUME_NO
+     , PERFUME_NAME
+     , CATEGORY_NO
+     , BRAND_NO
+     , AMOUNT
+     , PRICE
+     , STORAGE_AMOUNT
+     , MANUFACTURED_DATE
+     , ORDERABLE_STATUS
+  FROM PERFUME
+ WHERE ORDERABLE_STATUS = 'Y'
+  <if test="price gte 0 and price lte 10000">
+  AND PRICE BETWEEN 0 AND #{ price }
+  </if>
+  <if test="price gt 100000 and price lte 200000">
+  AND PRICE BETWEEN 100000 AND #{ price }
+  </if>
+  <if test="price gt 200000 and price lte 300000">
+  AND PRICE BETWEEN 200000 AND #{ price }
+  </if>
+  <if test="price gt 300000">
+  AND PRICE BETWEEN 300000 AND #{ price }
+  </if>
+</select>
+
+<select id = "selectMenuByNation" resultMap="resultMap">
+SELECT
+       PERFUME_NO
+     , PERFUME_NAME
+     , CATEGORY_NO
+     , BRAND_NO
+     , AMOUNT
+     , PRICE
+     , STORAGE_AMOUNT
+     , MANUFACTURED_DATE
+     , ORDERABLE_STATUS
+  FROM PERFUME
+  JOIN BRAND USING(BRAND_NO)
+  JOIN NATIONAL USING(NATIONAL_CODE)
+  <trim prefix="WHERE" prefixOverrides="AND|OR">
+  <choose>
+  <when test="value=='아시아'">
+  REF_NATIONAL_NAME = 'ASIA'
+  </when>
+  <when test="value=='유럽'">
+  AND REF_NATIONAL_NAME='EU'
+  </when>
+  <when test="value=='북아메리카'">
+  AND REF_NATIONAL_NAME='NA'
+  </when>
+  </choose>
+  </trim>
+</select>
+
+<insert id="insertMenu" parameterType="hashmap">
+INSERT INTO PERFUME
+(
+   PERFUME_NO
+ , PERFUME_NAME
+ , CATEGORY_NO
+ , BRAND_NO
+ , AMOUNT
+ , PRICE
+ , STORAGE_AMOUNT
+ , MANUFACTURED_DATE
+ , ORDERABLE_STATUS
+)
+VALUES
+(
+   SEQ_PERFUME_NO.NEXTVAL
+,  #{ perfumeName }
+,  #{ categoryNo }
+,  #{ brandNo }
+,  #{ amount }
+,  #{ price }
+,  #{ storageAmount }
+,  DEFAULT
+,  DEFAULT
+)
+</insert>
+
+<update id ="updateMenu">
+UPDATE PERFUME
+<trim prefix="SET" prefixOverrides=",">
+<if test="perfumeName != null and perfumeName != ''">
+ PERFUME_NAME = #{ perfumeName }
+</if>
+<if test="categoryNo != null and categoryNo gt 0">
+, CATEGORY_NO = #{ categoryNo }
+</if>
+<if test="brandNo != null and brandNo gt 0">
+, BRAND_NO = #{ brandNo }
+</if>
+<if test="amount != null and amount gt 0">
+, AMOUNT = #{ amount }
+</if>
+<if test="price != null and price gt 0">
+, PRICE = #{ price }
+</if>
+<if test="storageAmount != null and storageAmount gt 0">
+, STORAGE_AMOUNT = #{ storageAmount }
+</if>
+<if test="orderableStatus != null and orderableStatus != ''">
+, ORDERABLE_STATUS = #{ orderableStatus }
+</if>
+</trim>
+WHERE PERFUME_NO = #{ perfumeNo }
+</update>
+
+<delete id="deleteMenu">
+DELETE FROM PERFUME
+ WHERE PERFUME_NO = #{ perfumeNo }
+</delete>
+</mapper>
